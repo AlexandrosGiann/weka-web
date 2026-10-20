@@ -347,6 +347,7 @@
     const ca = data.classAttr;
     if (ca) {
       if (ca.type === 'nominal' && cap.nominalClass === false) throw new Error(L`Ο ${spec.name} δεν υποστηρίζει nominal κλάση. Επίλεξε αριθμητικό στόχο ή άλλον αλγόριθμο.`);
+      if (ca.type === 'nominal' && cap.binaryClass && ca.values.length !== 2) throw new Error(L`${spec.name} supports only two-valued (binary) classes. Pick a binary target or use another algorithm.`);
       if (ca.type !== 'nominal' && cap.numericClass === false) throw new Error(L`Ο ${spec.name} δεν υποστηρίζει αριθμητική κλάση. Επίλεξε nominal στόχο ή εφάρμοσε Discretize.`);
     }
     for (let j = 0; j < data.numAttributes; j++) {

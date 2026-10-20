@@ -335,7 +335,19 @@
   class SupervisedNominalToBinary extends AttrFilter {
     constructor(o = {}) { super(); this.N = o.N ?? true; }
     compute(d) {
-      if (d.classIsNominal()) { this.inner = new NominalToBinary({ N: this.N }).setInput(d); this.out = this.inner.out; return; }
+      if (d.classIsNominal()) {
+        this.inner = new NominalToBinary({ N: this.N }).setInput(d);
+        // like Weka, a two-valued attribute becomes "name=second value"
+        const atts = this.inner.out.attributes.slice();
+        let k = 0;
+        d.attributes.forEach((a, j) => {
+          if (a.type === 'nominal' && j !== d.classIndex && a.values.length > 2) { k += a.values.length; return; }
+          if (a.type === 'nominal' && j !== d.classIndex && a.values.length === 2) atts[k] = Object.assign({}, atts[k], { name: a.name + '=' + a.values[1] });
+          k++;
+        });
+        this.out = new W.Dataset(d.relation, atts, [], [], this.inner.out.classIndex);
+        return;
+      }
       const ci = d.classIndex, attrs = [], map = [];
       let nci = -1;
       d.attributes.forEach((a, j) => {

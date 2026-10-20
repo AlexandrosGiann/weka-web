@@ -17,7 +17,7 @@
     paper.appendChild(h('header.paper-head',
       h('div.paper-kicker', 'Weka Web · ' + new Date().toLocaleDateString(I18N.locale(), { year: 'numeric', month: 'long', day: 'numeric' })),
       h('h1', title),
-      h('div.paper-meta', rs.author ? h('span', rs.author) : null, App.state.fileName ? h('span', L`Source: ${App.state.fileName}`) : null, d ? h('span', L`${d.numInstances} instances · ${d.numAttributes} attributes`) : null)));
+      h('div.paper-meta', rs.author ? h('span', rs.author) : null, App.state.fileName ? h('span', L`Source: ${App.state.fileName}`) : null, App.state.source ? h('span', L`Web source: ${App.state.source.url} (retrieved ${App.state.source.time.toLocaleString(I18N.locale())}${App.state.source.licence ? ', ' + App.state.source.licence : ''})`) : null, d ? h('span', L`${d.numInstances} instances · ${d.numAttributes} attributes`) : null)));
     let sec = 0;
     const section = (t) => { sec++; const s = h('section.rsec', h('h2', sec + '. ' + t)); paper.appendChild(s); return s; };
     if (rs.notes.trim()) {

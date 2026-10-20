@@ -6,6 +6,9 @@
   const pick = (o) => (o && typeof o === 'object' ? o[I18N.lang] || o.en : o || '');
   const fmtT = (s) => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
 
+  /** Opens the tutorials page on a given video (used by the assistant). */
+  App.openTutorial = (id) => { ts.active = id; App.state.forceTop = true; App.go('tutorials'); };
+
   App.pages.tutorials = {
     render() {
       const vids = window.WEKA_VIDEOS || [];

@@ -44,12 +44,15 @@
       }
       const d = App.state.data;
       const features = [
-        ['filter', L`Προεπεξεργασία`, L`15 φίλτρα, ιστογράμματα, αναίρεση αλλαγών`],
-        ['tree', L`Ταξινόμηση & παλινδρόμηση`, L`21 αλγόριθμοι, cross-validation, ROC, σύγκριση κόστους, γραφικά δέντρα`],
+        ['filter', L`Προεπεξεργασία`, L`19 φίλτρα, ιστογράμματα, αναίρεση αλλαγών`],
+        ['tree', L`Ταξινόμηση & παλινδρόμηση`, L`25 αλγόριθμοι, cross-validation, ROC, σύγκριση κόστους, γραφικά δέντρα`],
         ['cluster', L`Ομαδοποίηση`, L`k-means, EM, ιεραρχική με δενδρόγραμμα`],
         ['link', L`Κανόνες συσχέτισης`, 'Apriori & FPGrowth'],
         ['select', L`Επιλογή χαρακτηριστικών`, 'InfoGain, CFS, ReliefF, PCA, Wrapper'],
         ['scatter', L`Οπτικοποίηση`, L`Scatter matrix με zoom και tooltips`],
+        ['globe', L`Web data`, L`Tables from web pages, CSV/JSON and Wikipedia — robots.txt and rate limits respected`],
+        ['chat', L`AI assistant`, L`Ask in English or Greek; it runs algorithms for you. Local models for voice and images`],
+        ['report', L`Report & tutorials`, L`Export the whole session as PDF; step-by-step videos`],
       ];
       return h('div.page',
         h('div.hero',

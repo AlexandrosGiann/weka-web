@@ -9,6 +9,7 @@
     { id: 'preprocess', label: L`Προεπεξεργασία`, icon: 'filter', short: L`Δεδομένα`, needs: true },
     { id: 'table', label: L`Πίνακας δεδομένων`, icon: 'table', short: L`Πίνακας`, needs: true },
     { id: 'visualize', label: L`Οπτικοποίηση`, icon: 'scatter', short: L`Γραφήματα`, needs: true },
+    { id: 'web', label: L`Web data`, icon: 'globe', short: L`Web` },
     { section: L`Ανάλυση` },
     { id: 'classify', label: L`Ταξινόμηση`, icon: 'tree', short: L`Ταξινόμ.`, needs: true, results: 'classify' },
     { id: 'cluster', label: L`Ομαδοποίηση`, icon: 'cluster', short: L`Ομάδες`, needs: true, results: 'cluster' },

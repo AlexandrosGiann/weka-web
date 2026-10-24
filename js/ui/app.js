@@ -15,6 +15,7 @@
     { id: 'cluster', label: L`Ομαδοποίηση`, icon: 'cluster', short: L`Ομάδες`, needs: true, results: 'cluster' },
     { id: 'associate', label: L`Συσχετίσεις`, icon: 'link', short: L`Κανόνες`, needs: true, results: 'associate' },
     { id: 'select', label: L`Επιλογή χαρακτηριστικών`, icon: 'select', short: L`Επιλογή`, needs: true, results: 'select' },
+    { id: 'python', label: L`Python / Colab`, icon: 'code', short: L`Python` },
     { section: L`Share & learn` },
     { id: 'report', label: L`Report (PDF)`, icon: 'report', short: L`Report`, needs: true },
     { id: 'tutorials', label: L`Video tutorials`, icon: 'video', short: L`Videos` },

@@ -810,5 +810,459 @@
    "en": 231,
    "el": 230
   }
+ },
+ "new-classifiers": {
+  "id": "new-classifiers",
+  "title": {
+   "en": "Five new classifiers",
+   "el": "Πέντε νέοι ταξινομητές"
+  },
+  "desc": {
+   "en": "BayesNet, KStar, LogitBoost, SGD and VotedPerceptron — identical to Weka 3.8.7 — and how to compare them.",
+   "el": "BayesNet, KStar, LogitBoost, SGD και VotedPerceptron — ίδια αποτελέσματα με το Weka 3.8.7 — και πώς τους συγκρίνεις."
+  },
+  "dataset": "diabetes",
+  "file": {
+   "en": "new-classifiers-en.webm",
+   "el": "new-classifiers-el.webm"
+  },
+  "chapters": {
+   "en": [
+    {
+     "t": 5.7,
+     "label": {
+      "en": "Where to find them",
+      "el": "Πού θα τους βρεις"
+     }
+    },
+    {
+     "t": 7.4,
+     "label": {
+      "en": "BayesNet",
+      "el": "BayesNet"
+     }
+    },
+    {
+     "t": 25.9,
+     "label": {
+      "en": "KStar",
+      "el": "KStar"
+     }
+    },
+    {
+     "t": 34.300000000000004,
+     "label": {
+      "en": "LogitBoost",
+      "el": "LogitBoost"
+     }
+    },
+    {
+     "t": 44.1,
+     "label": {
+      "en": "SGD",
+      "el": "SGD"
+     }
+    },
+    {
+     "t": 51.6,
+     "label": {
+      "en": "VotedPerceptron",
+      "el": "VotedPerceptron"
+     }
+    },
+    {
+     "t": 60.2,
+     "label": {
+      "en": "Comparing the models",
+      "el": "Σύγκριση μοντέλων"
+     }
+    }
+   ],
+   "el": [
+    {
+     "t": 5.6000000000000005,
+     "label": {
+      "en": "Where to find them",
+      "el": "Πού θα τους βρεις"
+     }
+    },
+    {
+     "t": 7.4,
+     "label": {
+      "en": "BayesNet",
+      "el": "BayesNet"
+     }
+    },
+    {
+     "t": 25.9,
+     "label": {
+      "en": "KStar",
+      "el": "KStar"
+     }
+    },
+    {
+     "t": 34.300000000000004,
+     "label": {
+      "en": "LogitBoost",
+      "el": "LogitBoost"
+     }
+    },
+    {
+     "t": 43.900000000000006,
+     "label": {
+      "en": "SGD",
+      "el": "SGD"
+     }
+    },
+    {
+     "t": 51.300000000000004,
+     "label": {
+      "en": "VotedPerceptron",
+      "el": "VotedPerceptron"
+     }
+    },
+    {
+     "t": 59.900000000000006,
+     "label": {
+      "en": "Comparing the models",
+      "el": "Σύγκριση μοντέλων"
+     }
+    }
+   ]
+  },
+  "duration": {
+   "en": 69,
+   "el": 69
+  }
+ },
+ "web-data": {
+  "id": "web-data",
+  "title": {
+   "en": "Web data: import tables responsibly",
+   "el": "Δεδομένα web: υπεύθυνη εισαγωγή πινάκων"
+  },
+  "desc": {
+   "en": "Import CSV files and Wikipedia tables from the web, with robots.txt checks, rate limits, blocked private addresses and automatic source attribution.",
+   "el": "Εισαγωγή CSV και πινάκων Wikipedia από το web, με έλεγχο robots.txt, όρια ρυθμού, μπλοκάρισμα ιδιωτικών διευθύνσεων και αυτόματη αναφορά πηγής."
+  },
+  "dataset": null,
+  "file": {
+   "en": "web-data-en.webm",
+   "el": "web-data-el.webm"
+  },
+  "chapters": {
+   "en": [
+    {
+     "t": 4.7,
+     "label": {
+      "en": "Responsible use",
+      "el": "Υπεύθυνη χρήση"
+     }
+    },
+    {
+     "t": 13.299999999999999,
+     "label": {
+      "en": "A CSV file from GitHub",
+      "el": "Αρχείο CSV από το GitHub"
+     }
+    },
+    {
+     "t": 25.9,
+     "label": {
+      "en": "Tables from Wikipedia",
+      "el": "Πίνακες από τη Wikipedia"
+     }
+    },
+    {
+     "t": 46.5,
+     "label": {
+      "en": "Built-in safeguards",
+      "el": "Ενσωματωμένες δικλείδες"
+     }
+    },
+    {
+     "t": 62.900000000000006,
+     "label": {
+      "en": "Source in the report",
+      "el": "Η πηγή στην αναφορά"
+     }
+    }
+   ],
+   "el": [
+    {
+     "t": 4.7,
+     "label": {
+      "en": "Responsible use",
+      "el": "Υπεύθυνη χρήση"
+     }
+    },
+    {
+     "t": 13.399999999999999,
+     "label": {
+      "en": "A CSV file from GitHub",
+      "el": "Αρχείο CSV από το GitHub"
+     }
+    },
+    {
+     "t": 26,
+     "label": {
+      "en": "Tables from Wikipedia",
+      "el": "Πίνακες από τη Wikipedia"
+     }
+    },
+    {
+     "t": 47.1,
+     "label": {
+      "en": "Built-in safeguards",
+      "el": "Ενσωματωμένες δικλείδες"
+     }
+    },
+    {
+     "t": 64.2,
+     "label": {
+      "en": "Source in the report",
+      "el": "Η πηγή στην αναφορά"
+     }
+    }
+   ]
+  },
+  "duration": {
+   "en": 73,
+   "el": 74
+  }
+ },
+ "assistant": {
+  "id": "assistant",
+  "title": {
+   "en": "The AI assistant",
+   "el": "Ο βοηθός AI"
+  },
+  "desc": {
+   "en": "Chat in English or Greek: load and describe data, remove attributes, compare models, explain results, ask concepts, use local AI (Needle 2) and image recognition (MobileCLIP).",
+   "el": "Συζήτησε στα ελληνικά ή στα αγγλικά: φόρτωση και περιγραφή δεδομένων, αφαίρεση χαρακτηριστικών, σύγκριση μοντέλων, εξήγηση αποτελεσμάτων, έννοιες, τοπικό AI (Needle 2) και αναγνώριση εικόνων (MobileCLIP)."
+  },
+  "dataset": "bank",
+  "file": {
+   "en": "assistant-en.webm",
+   "el": "assistant-el.webm"
+  },
+  "chapters": {
+   "en": [
+    {
+     "t": 4.7,
+     "label": {
+      "en": "Opening the assistant",
+      "el": "Άνοιγμα του βοηθού"
+     }
+    },
+    {
+     "t": 7.6000000000000005,
+     "label": {
+      "en": "Loading and describing data",
+      "el": "Φόρτωση και περιγραφή δεδομένων"
+     }
+    },
+    {
+     "t": 25.9,
+     "label": {
+      "en": "Comparing models",
+      "el": "Σύγκριση μοντέλων"
+     }
+    },
+    {
+     "t": 53.1,
+     "label": {
+      "en": "Explaining the result",
+      "el": "Εξήγηση του αποτελέσματος"
+     }
+    },
+    {
+     "t": 61.7,
+     "label": {
+      "en": "Learning concepts",
+      "el": "Μάθηση εννοιών"
+     }
+    },
+    {
+     "t": 68.9,
+     "label": {
+      "en": "AI mode (Needle 2)",
+      "el": "AI mode (Needle 2)"
+     }
+    },
+    {
+     "t": 101.4,
+     "label": {
+      "en": "Image recognition (MobileCLIP)",
+      "el": "Αναγνώριση εικόνων (MobileCLIP)"
+     }
+    }
+   ],
+   "el": [
+    {
+     "t": 4.7,
+     "label": {
+      "en": "Opening the assistant",
+      "el": "Άνοιγμα του βοηθού"
+     }
+    },
+    {
+     "t": 7.7,
+     "label": {
+      "en": "Loading and describing data",
+      "el": "Φόρτωση και περιγραφή δεδομένων"
+     }
+    },
+    {
+     "t": 26.9,
+     "label": {
+      "en": "Comparing models",
+      "el": "Σύγκριση μοντέλων"
+     }
+    },
+    {
+     "t": 55.400000000000006,
+     "label": {
+      "en": "Explaining the result",
+      "el": "Εξήγηση του αποτελέσματος"
+     }
+    },
+    {
+     "t": 64.2,
+     "label": {
+      "en": "Learning concepts",
+      "el": "Μάθηση εννοιών"
+     }
+    },
+    {
+     "t": 71.7,
+     "label": {
+      "en": "AI mode (Needle 2)",
+      "el": "AI mode (Needle 2)"
+     }
+    },
+    {
+     "t": 101.2,
+     "label": {
+      "en": "Image recognition (MobileCLIP)",
+      "el": "Αναγνώριση εικόνων (MobileCLIP)"
+     }
+    }
+   ]
+  },
+  "duration": {
+   "en": 112,
+   "el": 112
+  }
+ },
+ "python-colab": {
+  "id": "python-colab",
+  "title": {
+   "en": "Python / Colab: planning and conversion",
+   "el": "Python / Colab: σχεδιασμός και μετατροπή"
+  },
+  "desc": {
+   "en": "Run Colab notebooks with OR-Tools CP-SAT, Pyro and matplotlib in the browser, plan tasks visually, export any model to Colab and turn scikit-learn code into Weka algorithms.",
+   "el": "Τρέξε notebooks του Colab με OR-Tools CP-SAT, Pyro και matplotlib στον browser, σχεδίασε εργασίες οπτικά, εξήγαγε κάθε μοντέλο στο Colab και μετάτρεψε κώδικα scikit-learn σε αλγορίθμους του Weka."
+  },
+  "dataset": "iris",
+  "file": {
+   "en": "python-colab-en.webm",
+   "el": "python-colab-el.webm"
+  },
+  "chapters": {
+   "en": [
+    {
+     "t": 4.8,
+     "label": {
+      "en": "Notebooks in the browser",
+      "el": "Notebooks στον browser"
+     }
+    },
+    {
+     "t": 16.5,
+     "label": {
+      "en": "Uncertainty with Pyro",
+      "el": "Αβεβαιότητα με Pyro"
+     }
+    },
+    {
+     "t": 24.8,
+     "label": {
+      "en": "The visual planner",
+      "el": "Ο οπτικός planner"
+     }
+    },
+    {
+     "t": 44.300000000000004,
+     "label": {
+      "en": "Weka Web → Colab",
+      "el": "Weka Web → Colab"
+     }
+    },
+    {
+     "t": 62.900000000000006,
+     "label": {
+      "en": "Python → Weka Web",
+      "el": "Python → Weka Web"
+     }
+    },
+    {
+     "t": 74,
+     "label": {
+      "en": "Ask the assistant",
+      "el": "Ρώτα τον βοηθό"
+     }
+    }
+   ],
+   "el": [
+    {
+     "t": 4.8,
+     "label": {
+      "en": "Notebooks in the browser",
+      "el": "Notebooks στον browser"
+     }
+    },
+    {
+     "t": 16.4,
+     "label": {
+      "en": "Uncertainty with Pyro",
+      "el": "Αβεβαιότητα με Pyro"
+     }
+    },
+    {
+     "t": 24.7,
+     "label": {
+      "en": "The visual planner",
+      "el": "Ο οπτικός planner"
+     }
+    },
+    {
+     "t": 44.2,
+     "label": {
+      "en": "Weka Web → Colab",
+      "el": "Weka Web → Colab"
+     }
+    },
+    {
+     "t": 62.900000000000006,
+     "label": {
+      "en": "Python → Weka Web",
+      "el": "Python → Weka Web"
+     }
+    },
+    {
+     "t": 73.9,
+     "label": {
+      "en": "Ask the assistant",
+      "el": "Ρώτα τον βοηθό"
+     }
+    }
+   ]
+  },
+  "duration": {
+   "en": 98,
+   "el": 98
+  }
  }
 }

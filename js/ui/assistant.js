@@ -38,9 +38,9 @@
     visualize: ['visuali', 'scatter', 'plot', 'γραφημα', 'οπτικοποι'], web: ['web data', 'scrap', 'web import', 'διαδικτυ', '=web'],
     classify: ['classif', 'ταξινομ'], cluster: ['cluster', 'ομαδοποι', 'ομαδεσ'], associate: ['associat', 'συσχετισ', 'κανονεσ συσχ'],
     select: ['attribute selection', 'feature selection', 'select attributes', 'επιλογη χαρακτηρ'], report: ['report', 'αναφορα', 'αναφορ'],
-    tutorials: ['tutorial', 'video', 'βιντεο'],
+    tutorials: ['tutorial', 'video', 'βιντεο'], python: ['python', 'colab', 'jupyter', 'notebook', 'σημειωματαρι'],
   };
-  const PAGE_NAMES = { home: ['Home', 'Αρχική'], preprocess: ['Preprocess', 'Προεπεξεργασία'], table: ['Data table', 'Πίνακας δεδομένων'], visualize: ['Visualize', 'Οπτικοποίηση'], web: ['Web data', 'Δεδομένα web'], classify: ['Classify', 'Ταξινόμηση'], cluster: ['Cluster', 'Ομαδοποίηση'], associate: ['Associate', 'Συσχετίσεις'], select: ['Select attributes', 'Επιλογή χαρακτηριστικών'], report: ['Report', 'Αναφορά'], tutorials: ['Video tutorials', 'Video tutorials'] };
+  const PAGE_NAMES = { home: ['Home', 'Αρχική'], preprocess: ['Preprocess', 'Προεπεξεργασία'], table: ['Data table', 'Πίνακας δεδομένων'], visualize: ['Visualize', 'Οπτικοποίηση'], web: ['Web data', 'Δεδομένα web'], classify: ['Classify', 'Ταξινόμηση'], cluster: ['Cluster', 'Ομαδοποίηση'], associate: ['Associate', 'Συσχετίσεις'], select: ['Select attributes', 'Επιλογή χαρακτηριστικών'], report: ['Report', 'Αναφορά'], tutorials: ['Video tutorials', 'Video tutorials'], python: ['Python / Colab', 'Python / Colab'] };
   const CLS_ALIASES = [
     ['random forest', 'RandomForest'], ['τυχαιο δασοσ', 'RandomForest'], ['τυχαια δαση', 'RandomForest'], ['random tree', 'RandomTree'], ['rep tree', 'REPTree'],
     ['decision stump', 'DecisionStump'], ['stump', 'DecisionStump'], ['decision tree', 'J48'], ['δεντρο αποφασ', 'J48'], ['δεντρο', 'J48'], ['c4.5', 'J48'], ['=tree', 'J48'],
@@ -129,6 +129,8 @@
     if (!t) return [];
     const urlM = raw.match(/https?:\/\/[^\s"'<>]+/i);
     if (urlM) return [{ type: 'web', url: urlM[0] }];
+    const full = parseOne(t);
+    if (['plan', 'planExample', 'pyExport', 'pyImport'].includes(full.type)) return [full];
     // split compound commands ("load iris and then run J48")
     const parts = t.split(/\s*(?:;|,?\s+(?:and then|then|after that|και μετα|και επειτα|επειτα|μετα)\s+)\s*/).filter(Boolean);
     let steps = [];
@@ -179,6 +181,8 @@
     }
 
     // commands
+    const py = parsePython(t);
+    if (py) return py;
     if (any(t, ['tutorial', 'video', 'βιντεο', 'show me how', 'δειξε μου πωσ'])) {
       const tu = TUTORIALS.find(([, keys]) => any(t, keys)); return { type: 'tutorial', id: tu ? tu[0] : 'getting-started' };
     }
@@ -207,6 +211,28 @@
     const c = concept(t);
     if (c) return { type: 'concept', entry: c };
     return { type: 'unknown', question: false };
+  }
+  /** Python / Colab and automated-planning requests. */
+  function parsePython(t) {
+    const nbWord = any(t, ['colab', 'notebook', 'ipynb', 'jupyter', '=python', '.py', 'σημειωματαρι']);
+    if (nbWord && any(t, ['export', 'convert', 'save', 'download', 'generate', 'turn', 'εξαγωγ', 'εξαγαγ', 'μετατρ', 'μετετρεψ', 'κατεβασ', 'αποθηκευσ', 'φτιαξ'])) return { type: 'pyExport', fmt: /(^|\s)(\.py|script|σκριπτ)/.test(t) && !/ipynb|notebook|colab/.test(t) ? 'py' : 'ipynb' };
+    if (nbWord && !any(t, ['=page', 'σελιδα']) && any(t, ['import', 'load', 'open', 'upload', 'run my', 'εισαγ', 'φορτωσ', 'ανοιξ', 'ανεβασ', 'τρεξε το'])) return { type: 'pyImport' };
+    const planWord = any(t, ['schedul', 'planning', 'plan the', 'plan my', 'or-tools', 'ortools', 'cp-sat', 'cpsat', 'gantt', 'makespan', 'προγραμματισ', 'χρονοπρογραμμ', 'σχεδιασμ', 'automated planning', 'monte carlo', '=pyro']);
+    if (!planWord) return null;
+    const tasks = [];
+    for (const m of t.matchAll(/([\p{L}][\p{L}\d_-]*)\s*(?:=|:)\s*(\d+(?:\.\d+)?)/gu)) if (!/^(k|deadline|προθεσμια|workers?)$/.test(m[1])) tasks.push({ name: m[1], d: Math.round(+m[2]), pred: [] });
+    if (tasks.length >= 2) {
+      const find = (n) => tasks.find((x) => x.name === n);
+      for (const m of t.matchAll(/([\p{L}][\p{L}\d_-]*)\s+(?:before|πριν(?:\s+απο)?(?:\s+το|\s+τη|\s+την)?)\s+([\p{L}][\p{L}\d_-]*)/gu)) { const a = find(m[1]), b = find(m[2]); if (a && b && !b.pred.includes(a.name)) b.pred.push(a.name); }
+      for (const m of t.matchAll(/([\p{L}][\p{L}\d_-]*)\s+(?:after|μετα(?:\s+απο)?(?:\s+το|\s+τη|\s+την)?)\s+([\p{L}][\p{L}\d_-]*)/gu)) { const a = find(m[1]), b = find(m[2]); if (a && b && !a.pred.includes(b.name)) a.pred.push(b.name); }
+      const wm = t.match(/(\d+|one|two|three|four|ενασ|ενα|μια|δυο|τρεισ|τρια|τεσσερισ)\s+(?:workers?|developers?|machines?|people|εργατ\S*|ατομα|μηχανεσ|προγραμματιστ\S*)/);
+      const words = { one: 1, two: 2, three: 3, four: 4, 'ενασ': 1, 'ενα': 1, 'μια': 1, 'δυο': 2, 'τρεισ': 3, 'τρια': 3, 'τεσσερισ': 4 };
+      const workers = wm ? (words[wm[1]] || +wm[1]) : any(t, ['parallel', 'unlimited', 'παραλληλ']) ? 0 : 1;
+      const dm = t.match(/(?:deadline|προθεσμια)\s*(?:of|=|:|is|ειναι)?\s*(\d+)/);
+      return { type: 'plan', tasks, workers, deadline: dm ? +dm[1] : null };
+    }
+    const id = any(t, ['monte carlo', 'pyro', 'uncertain', 'αβεβαι', 'πιθανοτ']) ? 'uncertain' : any(t, ['two workers', 'δυο εργατ', 'cumulative']) ? 'two-workers' : any(t, ['one worker', 'single worker', 'ενασ εργατ', 'no overlap']) ? 'one-worker' : any(t, ['gantt', 'matplotlib']) ? 'gantt' : any(t, ['precedence', 'προτεραιοτ', 'assembly', 'συναρμολογ']) ? 'precedence' : 'project';
+    return { type: 'planExample', id };
   }
   function concept(t) {
     let best = null, bl = 0;
@@ -376,6 +402,29 @@
       }
       case 'image': await pickImage(); return true;
       case 'imagesToData': await imagesToDataset(); return true;
+      case 'pyExport': {
+        if (!App.state.data && !App.state.results.classify.length) { bot(T('Load a dataset and run a classifier first — then I can turn it into a Colab notebook.', 'Φόρτωσε δεδομένα και τρέξε πρώτα έναν ταξινομητή — μετά τον μετατρέπω σε notebook για το Colab.'), { chips: [chip(T('Load iris and run J48', 'Φόρτωσε το iris και τρέξε J48'))] }); return false; }
+        const nb = App.py.exportResult('last', st.fmt);
+        bot(T(`Downloaded ${nb.title}.${st.fmt}. In Google Colab choose File → Upload notebook. Part 1 runs the closest scikit-learn model; part 2 runs the real Weka algorithm (python-weka-wrapper3), so its numbers match Weka Web exactly.`, `Κατέβηκε το ${nb.title}.${st.fmt}. Στο Google Colab διάλεξε File → Upload notebook. Το μέρος 1 τρέχει το πλησιέστερο μοντέλο του scikit-learn· το μέρος 2 τρέχει τον πραγματικό αλγόριθμο του Weka (python-weka-wrapper3), άρα τα νούμερα ταιριάζουν ακριβώς με το Weka Web.`), { chips: [chipFn(T('Open Python / Colab', 'Άνοιγμα Python / Colab'), () => { App.go('python'); App.py.setTab('convert'); })] });
+        return true;
+      }
+      case 'pyImport':
+        App.go('python'); App.py.setTab('notebook');
+        bot(T('Choose a .ipynb (Colab / Jupyter) or .py file. OR-Tools, Pyro, torch, numpy and matplotlib cells run in the browser; scikit-learn models are mapped to Weka Web algorithms. You can also drop the file on the page.', 'Διάλεξε ένα αρχείο .ipynb (Colab / Jupyter) ή .py. Τα κελιά με OR-Tools, Pyro, torch, numpy και matplotlib τρέχουν στον browser· τα μοντέλα του scikit-learn αντιστοιχίζονται σε αλγορίθμους του Weka Web. Μπορείς και να σύρεις το αρχείο στη σελίδα.'), { chips: [chipFn(T('📂 Choose notebook', '📂 Επιλογή notebook'), async () => { await App.py.importFile(); if (App.py.state.cells.length) { App.py.runAll(); bot(T(`Ran ${App.py.state.cells.filter((c) => c.type === 'code').length} cells — results and Gantt charts are on the page.`, `Έτρεξα ${App.py.state.cells.filter((c) => c.type === 'code').length} κελιά — αποτελέσματα και διαγράμματα Gantt είναι στη σελίδα.`)); } })] });
+        return true;
+      case 'planExample': {
+        const ex = App.py.loadExample(st.id);
+        const outs = App.py.state.cells.filter((c) => c.type === 'code' && c.out).map((c) => (c.out.error ? '⚠ ' + c.out.error.type + ': ' + c.out.error.message : c.out.text.trim())).filter(Boolean).join('\n').split('\n').slice(0, 9).join('\n');
+        bot(T(`Opened the planning example “${ex.title}” and ran it in the browser:\n`, `Άνοιξα το παράδειγμα σχεδιασμού «${ex.title}» και το έτρεξα στον browser:\n`) + outs, { chips: [chip(T('Schedule design=3, build=5, test=2, design before build, build before test, one worker', 'Προγραμμάτισε design=3, build=5, test=2, design πριν build, build πριν test, ένας εργάτης')), chip(T('Planning with uncertainty (Pyro)', 'Σχεδιασμός με αβεβαιότητα (Pyro)'))] });
+        return true;
+      }
+      case 'plan': {
+        const out = App.py.plan(st.tasks, st.workers, st.deadline);
+        const text = (out || []).map((c) => (c.out.error ? '⚠ ' + c.out.error.message : c.out.text)).join('\n');
+        const lines = text.split('\n').filter((l) => /makespan|status|P\(|:\s*start/i.test(l)).slice(0, 12).join('\n');
+        bot(T(`Planned ${st.tasks.length} tasks with OR-Tools CP-SAT (${st.workers === 1 ? 'one worker' : st.workers ? st.workers + ' workers' : 'unlimited workers'}):\n`, `Προγραμμάτισα ${st.tasks.length} εργασίες με OR-Tools CP-SAT (${st.workers === 1 ? 'ένας εργάτης' : st.workers ? st.workers + ' εργάτες' : 'χωρίς όριο εργατών'}):\n`) + lines, { chips: [chipFn(T('Download as Colab notebook', 'Λήψη ως notebook Colab'), () => { const g = W.PyBridge.plannerCode({ tasks: st.tasks, workers: st.workers, deadline: st.deadline }); App.download('automated-planning.ipynb', g.ipynb, 'application/json'); })] });
+        return true;
+      }
       case 'voiceHelp': bot(T('Press the 🎤 button, speak your command (English, German, French, Spanish, Italian, Dutch or Polish), then press it again. The Whistle speech model runs locally in your browser.', 'Πάτα το κουμπί 🎤, πες την εντολή σου (αγγλικά, γερμανικά, γαλλικά, ισπανικά, ιταλικά, ολλανδικά ή πολωνικά — όχι ελληνικά) και πάτα το ξανά. Το μοντέλο ομιλίας Whistle τρέχει τοπικά στον browser σου.')); return true;
       default: return true;
     }
@@ -386,8 +435,8 @@
       chip(T('What is cross-validation?', 'Τι είναι το cross-validation;')), chip(T('Cluster with k-means, k=3', 'Ομαδοποίηση με k-means, k=3')), chip(T('Export PDF', 'Εξαγωγή PDF'))];
   }
   function help() {
-    bot(T('Here is what I can do — just ask in plain English or Greek:\n• Data: “load diabetes”, “describe the data”, “how many missing values?”, “set class to y”, “remove duration”, “normalize”, “undo”\n• Analysis: “run random forest”, “compare J48, NaiveBayes and SMO”, “cluster with k-means k=4”, “find association rules”, “which attributes matter most?”\n• Results: “which model is best?”, “explain the result”, “export PDF”\n• Learn: “what is overfitting?”, “show me the classification video”\n• Web: paste a URL or “wikipedia table List of largest cities”\n• 🎤 voice commands, 📷 image recognition and images → dataset\n• ⚙ AI mode: a local language model (Needle 2) for free-form commands.',
-      'Να τι μπορώ να κάνω — ρώτα απλά, στα ελληνικά ή στα αγγλικά:\n• Δεδομένα: «φόρτωσε το diabetes», «περίγραψε τα δεδομένα», «πόσες ελλιπείς τιμές;», «κλάση y», «αφαίρεσε το duration», «κανονικοποίησε», «αναίρεση»\n• Ανάλυση: «τρέξε random forest», «σύγκρινε J48, NaiveBayes και SMO», «ομαδοποίηση με k-means σε 4 ομάδες», «βρες κανόνες συσχέτισης», «ποια χαρακτηριστικά μετράνε;»\n• Αποτελέσματα: «ποιο μοντέλο είναι καλύτερο;», «εξήγησε το αποτέλεσμα», «εξαγωγή PDF»\n• Μάθηση: «τι είναι το overfitting;», «δείξε μου το βίντεο για ταξινόμηση»\n• Web: επικόλλησε ένα URL ή «wikipedia πίνακας List of largest cities»\n• 🎤 φωνητικές εντολές, 📷 αναγνώριση εικόνων και εικόνες → dataset\n• ⚙ AI mode: τοπικό γλωσσικό μοντέλο (Needle 2) για ελεύθερες εντολές.'), { chips: helpChips() });
+    bot(T('Here is what I can do — just ask in plain English or Greek:\n• Data: “load diabetes”, “describe the data”, “how many missing values?”, “set class to y”, “remove duration”, “normalize”, “undo”\n• Analysis: “run random forest”, “compare J48, NaiveBayes and SMO”, “cluster with k-means k=4”, “find association rules”, “which attributes matter most?”\n• Results: “which model is best?”, “explain the result”, “export PDF”\n• Learn: “what is overfitting?”, “show me the classification video”\n• Web: paste a URL or “wikipedia table List of largest cities”\n• Python / Colab: “export to Colab”, “import a notebook”, “schedule design=3, build=5, design before build, one worker”, “planning with uncertainty”\n• 🎤 voice commands, 📷 image recognition and images → dataset\n• ⚙ AI mode: a local language model (Needle 2) for free-form commands.',
+      'Να τι μπορώ να κάνω — ρώτα απλά, στα ελληνικά ή στα αγγλικά:\n• Δεδομένα: «φόρτωσε το diabetes», «περίγραψε τα δεδομένα», «πόσες ελλιπείς τιμές;», «κλάση y», «αφαίρεσε το duration», «κανονικοποίησε», «αναίρεση»\n• Ανάλυση: «τρέξε random forest», «σύγκρινε J48, NaiveBayes και SMO», «ομαδοποίηση με k-means σε 4 ομάδες», «βρες κανόνες συσχέτισης», «ποια χαρακτηριστικά μετράνε;»\n• Αποτελέσματα: «ποιο μοντέλο είναι καλύτερο;», «εξήγησε το αποτέλεσμα», «εξαγωγή PDF»\n• Μάθηση: «τι είναι το overfitting;», «δείξε μου το βίντεο για ταξινόμηση»\n• Web: επικόλλησε ένα URL ή «wikipedia πίνακας List of largest cities»\n• Python / Colab: «εξαγωγή σε Colab», «εισαγωγή notebook», «προγραμμάτισε design=3, build=5, design πριν build, ένας εργάτης», «σχεδιασμός με αβεβαιότητα»\n• 🎤 φωνητικές εντολές, 📷 αναγνώριση εικόνων και εικόνες → dataset\n• ⚙ AI mode: τοπικό γλωσσικό μοντέλο (Needle 2) για ελεύθερες εντολές.'), { chips: helpChips() });
     return true;
   }
   function nextChips(d) {

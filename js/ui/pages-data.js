@@ -52,7 +52,10 @@
         ['scatter', L`Οπτικοποίηση`, L`Scatter matrix με zoom και tooltips`],
         ['globe', L`Web data`, L`Tables from web pages, CSV/JSON and Wikipedia — robots.txt and rate limits respected`],
         ['chat', L`AI assistant`, L`Ask in English or Greek; it runs algorithms for you. Local models for voice and images`],
-        ['report', L`Report & tutorials`, L`Export the whole session as PDF; step-by-step videos`],
+        ['code', L`Python / Colab`, L`Run Colab notebooks (OR-Tools, Pyro, matplotlib) in the browser; export any model to Colab`],
+        ['report', L`Report (PDF)`, L`Export the whole session — data, steps, results, charts — as PDF`],
+        ['video', L`Video tutorials`, L`Step-by-step videos in English and Greek`],
+        ['sparkles', L`Same results as Weka`, L`Algorithms checked against Weka 3.8.7 — most match it exactly`],
       ];
       return h('div.page',
         h('div.hero',

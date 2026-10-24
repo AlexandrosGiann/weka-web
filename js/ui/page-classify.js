@@ -100,6 +100,7 @@
     const tabs = h('div.tabs', tabsDef.map(([k, l, ic]) => h('button' + (st.tab === k ? '.active' : ''), { on: { click: () => { st.tab = k; App.go('classify'); } } }, App.icon(ic), l)));
     const body = h('div');
     const head = h('div.card-head', h('div', h('h3', entry.name), h('div.muted.small', r.spec.path + (r.optStr ? ' ' + r.optStr : ''))), h('div.spacer'),
+      h('button.btn.sm', { title: L`Export as a Google Colab notebook (scikit-learn + exact Weka)`, on: { click: () => { try { App.py.exportResult('c' + App.state.results.classify.indexOf(entry), 'ipynb'); } catch (e) { App.error(e); } } } }, App.icon('code'), 'Colab'),
       h('button.btn.sm', { on: { click: () => App.download(entry.name + '-' + entry.relation + '.txt', r.report) } }, App.icon('download'), L`Αναφορά`));
     const card = h('div.card', head, tabs, body);
     if (st.tab === 'summary') body.appendChild(summaryTab(entry));

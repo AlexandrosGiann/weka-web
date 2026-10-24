@@ -1,6 +1,6 @@
 # Weka Web
 
-The core features of the **Weka 3.8.7 Explorer**, rewritten in plain **HTML, CSS and JavaScript**. It needs no Java, Node or server, and it uses no external libraries. It also includes responsible **web data import** and a bilingual **AI assistant** that runs local models in the browser. The interface is in **English** by default, and the **ΕΛ / EN** button in the top bar switches to Greek.
+The core features of the **Weka 3.8.7 Explorer**, rewritten in plain **HTML, CSS and JavaScript**. It needs no Java, Node or server, and it uses no external libraries. It also includes responsible **web data import**, a **Python / Colab** page that runs OR-Tools and Pyro notebooks in the browser and converts models to and from Google Colab, and a bilingual **AI assistant** that runs local models in the browser. The interface is in **English** by default, and the **ΕΛ / EN** button in the top bar switches to Greek.
 
 *Τα βασικά features του Weka Explorer σε καθαρό HTML/CSS/JavaScript. Η προεπιλεγμένη γλώσσα είναι τα αγγλικά, και το κουμπί **ΕΛ** επάνω δεξιά αλλάζει σε ελληνικά.*
 
@@ -22,7 +22,7 @@ in the folder and open <http://localhost:8000>. Browsers block Web Workers and m
 |---|---|
 | `index.html`, `css/`, `js/` | The application |
 | `datasets/` | 22 built-in datasets: the Weka samples plus **bank.csv** (UCI Bank Marketing) |
-| `videos/` | 20 tutorial videos (10 topics × English and Greek), also shown on the **Video tutorials** page |
+| `videos/` | 22 tutorial videos (11 topics × English and Greek), also shown on the **Video tutorials** page |
 | `Bank_Marketing_Report_EN.pdf`, `Bank_Marketing_Report_EL.pdf` | The full Bank Marketing walkthrough, run in the app and exported with the **Report (PDF)** page |
 | `models/` | Local AI models for the assistant (Needle 2, Whistle, MobileCLIP-S0) with their licences — see [models/README.md](models/README.md) |
 
@@ -38,9 +38,10 @@ in the folder and open <http://localhost:8000>. Browsers block Web Workers and m
 | Select attributes | InfoGain, GainRatio, SymmetricalUncert, Correlation, ReliefF, OneR, CFS, Wrapper, PCA, with Ranker, BestFirst or GreedyStepwise; full training set or cross-validation |
 | Visualize | Scatter-plot matrix, zoomable scatter plot with jitter and tooltips |
 | **Web data** | Import tables from public web pages (HTML tables), CSV/TSV, JSON and ARFF files, and Wikipedia articles (official MediaWiki API). Safeguards: an explicit responsible-use statement, a robots.txt check before every page, at most 1 request per 5 s per site and 10 per minute, 10 MB / 20 s caps, no cookies or credentials, private-network addresses blocked, no CORS proxies, and the source URL and licence are added to the report |
-| **AI assistant** | A floating chat in English or Greek that performs actions: load data, describe it, set the class, remove attributes, apply filters, run and compare classifiers, cluster, find rules, rank attributes, explain results, export the PDF, open tutorials, import web data. It answers ~40 data-mining questions from a curated knowledge base and (optionally) short, credited Wikipedia summaries. Optional local models: **Needle 2** for free-form commands (every AI-chosen action needs your confirmation), **Whistle** for voice commands, **MobileCLIP-S0** for image recognition and turning a folder of images into a dataset of embeddings |
+| **Python / Colab** | **Run Colab notebooks in the browser:** import a `.ipynb` / `.py` and run cells that use OR-Tools CP-SAT (integer and interval variables, linear constraints, `AddNoOverlap`, `AddCumulative`, `AddMaxEquality`…), Pyro / torch (Monte Carlo sampling), numpy, math, random and matplotlib — with Gantt charts, histograms and the saved Colab output for comparison. **Planner:** tasks, durations, precedences, workers and uncertainty → real OR-Tools + Pyro code, solved here and downloadable as a notebook. **Weka ⇄ Python:** every classifier or clusterer run exports to a Colab notebook (closest scikit-learn model + an exact python-weka-wrapper3 cell), and scikit-learn / python-weka-wrapper3 code is recognised and run as Weka algorithms. A small Python interpreter (`js/minipy.js`) and a CP-SAT-compatible solver (`js/planning.js`) make this work offline, also from `file://` |
+| **AI assistant** | A floating chat in English or Greek that performs actions: load data, describe it, set the class, remove attributes, apply filters, run and compare classifiers, cluster, find rules, rank attributes, explain results, export the PDF, open tutorials, import web data, export to Colab, import notebooks and plan tasks (“schedule design=3, build=5, design before build, one worker”). It answers ~40 data-mining questions from a curated knowledge base and (optionally) short, credited Wikipedia summaries. Optional local models: **Needle 2** for free-form commands (every AI-chosen action needs your confirmation), **Whistle** for voice commands, **MobileCLIP-S0** for image recognition and turning a folder of images into a dataset of embeddings |
 | **Report (PDF)** | Collects the whole session — dataset, preprocessing steps, every result with its charts and tables, and your title and conclusions. Export it as PDF (the print dialog, “Save as PDF”) or as HTML |
-| **Video tutorials** | Getting started · Preprocessing · Classification · Five new classifiers · Clustering · Association rules & attribute selection · Web data · The AI assistant · Report → PDF · Bank Marketing case study. Each video has chapters you can click |
+| **Video tutorials** | Getting started · Preprocessing · Classification · Five new classifiers · Clustering · Association rules & attribute selection · Web data · Python / Colab · The AI assistant · Report → PDF · Bank Marketing case study. Each video has chapters you can click |
 
 ## Fidelity to Weka
 

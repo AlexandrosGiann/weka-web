@@ -1,0 +1,17 @@
+{
+ "params_backbone": 2493024,
+ "encoder_bytes": 4962144,
+ "textmap_bytes": 1311752,
+ "bank_bytes": 1283072,
+ "fp16_vs_fp32_cos": 0.9999944567680359,
+ "mean_feature_norm": 19.13558006286621,
+ "val_cos_teacher": 0.732695996761322,
+ "agree_top1": 0.5718,
+ "teacher_in_top5": 0.858,
+ "imagenet_same_top1_as_original": 0.6734,
+ "epochs_trained": 8,
+ "imagenette_words": 0.9398726114649681,
+ "imagenette_teacher": 0.9921019108280255,
+ "imagenette_imagenet_head": 0.9905732484076433,
+ "imagenette_n": 3925
+}

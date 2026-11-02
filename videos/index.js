@@ -859,8 +859,8 @@ window.WEKA_VIDEOS = [
    "el": "Ο βοηθός AI"
   },
   "desc": {
-   "en": "Chat in English or Greek: load and describe data, remove attributes, compare models, explain results, ask concepts, use local AI (Needle 2) and image recognition (MobileCLIP).",
-   "el": "Συζήτησε στα ελληνικά ή στα αγγλικά: φόρτωση και περιγραφή δεδομένων, αφαίρεση χαρακτηριστικών, σύγκριση μοντέλων, εξήγηση αποτελεσμάτων, έννοιες, τοπικό AI (Needle 2) και αναγνώριση εικόνων (MobileCLIP)."
+   "en": "Chat in English or Greek: load and describe data, remove attributes, compare models, explain results, ask concepts, use local AI (Needle 2) and image recognition (Orasis-2).",
+   "el": "Συζήτησε στα ελληνικά ή στα αγγλικά: φόρτωση και περιγραφή δεδομένων, αφαίρεση χαρακτηριστικών, σύγκριση μοντέλων, εξήγηση αποτελεσμάτων, έννοιες, τοπικό AI (Needle 2) και αναγνώριση εικόνων (Orasis-2)."
   },
   "dataset": "bank",
   "file": {
@@ -914,8 +914,8 @@ window.WEKA_VIDEOS = [
     {
      "t": 101.4,
      "label": {
-      "en": "Image recognition (MobileCLIP)",
-      "el": "Αναγνώριση εικόνων (MobileCLIP)"
+      "en": "Image recognition (Orasis-2)",
+      "el": "Αναγνώριση εικόνων (Orasis-2)"
      }
     }
    ],
@@ -965,8 +965,8 @@ window.WEKA_VIDEOS = [
     {
      "t": 101.2,
      "label": {
-      "en": "Image recognition (MobileCLIP)",
-      "el": "Αναγνώριση εικόνων (MobileCLIP)"
+      "en": "Image recognition (Orasis-2)",
+      "el": "Αναγνώριση εικόνων (Orasis-2)"
      }
     }
    ]

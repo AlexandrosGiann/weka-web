@@ -1,0 +1,26 @@
+dist/models holds encoders converted from pretrained models, and classifier heads trained for this project.
+
+Encoders and ImageNet heads
+  mobilenetv4_conv_small  from timm/mobilenetv4_conv_small.e2400_r224_in1k (Hugging Face)
+  mobilenetv3_small_050   from timm/mobilenetv3_small_050.lamb_in1k (Hugging Face)
+  Both model cards state the Apache License 2.0; a copy is in LICENSE-APACHE-2.0.txt.
+  Weights and architecture come from the timm project (Ross Wightman) and the MobileNet papers.
+  Changes made here: BatchNorm folded into the convolutions, a 1x1 layer added in front to convert the input normalisation,
+  weights stored as 16-bit floats, classifier moved to a separate head file with its weights multiplied by the mean feature norm.
+
+Training data of those weights
+  They were trained on ImageNet-1k, whose terms limit the data itself to non-commercial research. The license of the weights does not
+  settle this question. Get legal advice before commercial use.
+
+scenes14.orh
+  Trained here on the training images listed in demo/tm/manifest.json and demo/tm/manifest2.json (public domain, CC0 and CC BY).
+  The manifests hold the title, author, license and source page of every image.
+
+textmap.orh
+  Linear map to the space of OpenCLIP ViT-B-16 laion2b_s34b_b88k (MIT), fitted here on the same training images.
+
+orasis2
+  Encoder and ImageNet head start from timm/mobilenetv4_conv_small.e2400_r224_in1k (Apache License 2.0). They were fine-tuned here
+  (colab/orasis2.py) on the COCO 2017 train and unlabeled images to follow OpenCLIP ViT-B-16 laion2b_s34b_b88k (MIT), and its textmap.orh
+  was trained with them on those images. COCO images keep the licenses their authors gave them on Flickr. The ImageNet question above
+  applies here too, because training started from those weights.

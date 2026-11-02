@@ -5,7 +5,7 @@
  *   - Needle 2 (models/needle2): free-form commands → ONE tool call chosen from a closed list (finite grammar),
  *     always shown to the user for confirmation before it runs;
  *   - Whistle (models/whistle): speech-to-text for voice commands (en, de, fr, es, it, nl, pl);
- *   - MobileCLIP-S0 (models/mobileclip): image recognition and “images → dataset” embeddings.
+ *   - Zagreus Orasis-2 (models/orasis): image recognition and “images → dataset” embeddings.
  * Everything runs in the browser; nothing is sent to a server except optional Wikipedia look-ups. */
 (function () {
   'use strict';
@@ -804,68 +804,88 @@
     VOICE.timer = setTimeout(() => { if (VOICE.rec.state === 'recording') VOICE.rec.stop(); }, 12000);
   }
 
-  // ----------------------------------------------------------------- MobileCLIP (vision)
-  const VIS = { state: 'off', worker: null, helpers: [], queue: [], cur: null, ready: null, progress: 0 };
+  // ----------------------------------------------------------------- Zagreus Orasis-2 (vision)
+  const VIS = { state: 'off', ready: null, progress: 0, m: null };
+  const ORASIS_FILES = ['encoder.ors', 'imagenet.orh', 'imagenet.json', 'scenes14.orh', 'scenes14.json', 'textmap.orh', 'bank.f16', 'labels.json', 'orasis.wasm', 'orasis-simd.wasm'];
+  /** Loads the model. Over http(s) it is fetched; from file:// the user chooses the models/orasis folder once. */
   function visionStart() {
     if (VIS.ready) return VIS.ready;
-    if (!isHttp) return Promise.reject(new Error(TU('Image recognition needs the app to be served over http(s) — e.g. run “python -m http.server” in the app folder, or use the GitHub Pages site.', 'Η αναγνώριση εικόνων χρειάζεται η εφαρμογή να σερβίρεται μέσω http(s) — π.χ. «python -m http.server» στον φάκελο της εφαρμογής ή η σελίδα GitHub Pages.')));
-    VIS.state = 'loading'; renderStatus();
-    const url = BASE + 'mobileclip/browser-fp32-opt-v3-worker-bundle.js?v=fp32-opt-v3';
-    VIS.ready = new Promise((resolve, reject) => {
-      const w = (VIS.worker = new Worker(url));
-      const threads = Math.max(1, Math.min(4, navigator.hardwareConcurrency || 1));
-      for (let i = 0; i + 1 < threads; i++) {
-        let hw; try { hw = new Worker(url + '&role=helper'); } catch (e) { continue; }
-        const lost = () => w.postMessage({ type: 'pool-helper', helper: i, alive: false });
-        hw.onmessage = (ev) => { const m = ev.data || {};
-          if (m.type === 'helper-ready') w.postMessage({ type: 'pool-helper', helper: i, alive: true });
-          else if (m.type === 'slice-result') w.postMessage({ type: 'pool-result', id: m.id, out: m.out }, [m.out]);
-          else if (m.type === 'slice-error') lost(); };
-        hw.onerror = lost;
-        VIS.helpers[i] = hw;
+    VIS.ready = (async () => {
+      let get;
+      if (isHttp) get = async (n) => { const r = await fetch(BASE + 'orasis/' + n); if (!r.ok) throw new Error(n + ': HTTP ' + r.status); return r.arrayBuffer(); };
+      else {
+        const files = await pickFolder();
+        const map = new Map(files.map((f) => [f.name, f]));
+        if (!map.has('encoder.ors')) throw new Error(TU('Opened from file:// — choose the models/orasis folder to enable image recognition.', 'Άνοιγμα από file:// — διάλεξε τον φάκελο models/orasis για να ενεργοποιηθεί η αναγνώριση εικόνων.'));
+        get = async (n) => { if (!map.has(n)) throw new Error(n + ' is missing'); return map.get(n).arrayBuffer(); };
       }
-      w.onmessage = (ev) => {
-        const m = ev.data || {};
-        if (m.type === 'pool-task') { const hw = VIS.helpers[m.to]; if (hw) hw.postMessage(m.task, [m.task.x, m.task.w, m.task.b].filter(Boolean)); return; }
-        if (m.type === 'load-progress') { VIS.progress = (m.percent || 0) / 100; renderStatus(); return; }
-        if (m.type === 'ready') { VIS.state = 'ready'; renderStatus(); resolve(); pump(); return; }
-        if (m.type === 'infer-progress') { if (VIS.cur && VIS.cur.onProgress) VIS.cur.onProgress((m.percent || 0) / 100); return; }
-        if (m.type === 'result') { const c = VIS.cur; VIS.cur = null; if (c) c.resolve(m); pump(); return; }
-        if (m.type === 'error') { const c = VIS.cur; VIS.cur = null; if (c) c.reject(new Error(m.text)); else { VIS.state = 'error'; renderStatus(); reject(new Error(m.text)); } pump(); }
-      };
-      w.onerror = (e) => { VIS.state = 'error'; renderStatus(); reject(new Error(e.message || 'worker error')); };
-    });
+      VIS.state = 'loading'; VIS.progress = 0; renderStatus();
+      if (!window.Orasis) await loadScript(BASE + 'orasis/orasis.js');
+      if (!window.OrasisHead) await loadScript(BASE + 'orasis/head.js');
+      if (!window.OrasisWasm) await loadScript(BASE + 'orasis/orasis-wasm.js');
+      const bytes = {};
+      let done = 0;
+      const simd = window.OrasisWasm.simdSupported();
+      const wanted = ORASIS_FILES.filter((n) => n !== (simd ? 'orasis.wasm' : 'orasis-simd.wasm'));
+      await Promise.all(wanted.map(async (n) => { bytes[n] = await get(n); VIS.progress = ++done / wanted.length; renderStatus(); }));
+      const json = (n) => JSON.parse(new TextDecoder().decode(bytes[n]));
+      let encoder;
+      try { encoder = await window.OrasisWasm.create(bytes[simd ? 'orasis-simd.wasm' : 'orasis.wasm'], bytes['encoder.ors']); }
+      catch (e) { const js = new window.Orasis.Model(bytes['encoder.ors']); encoder = { size: js.size, dim: js.dim, encode: (x) => js.encode(x) }; }
+      VIS.m = { encoder, inet: window.OrasisHead.load(bytes['imagenet.orh']), inetLabels: json('imagenet.json'), scenes: window.OrasisHead.load(bytes['scenes14.orh']), sceneLabels: json('scenes14.json'),
+        textMap: window.OrasisHead.load(bytes['textmap.orh']), bank: window.Orasis.decodeF16(bytes['bank.f16']), bankLabels: json('labels.json') };
+      VIS.state = 'ready'; renderStatus();
+    })().catch((e) => { VIS.state = 'error'; VIS.ready = null; renderStatus(); throw e; });
     return VIS.ready;
   }
-  function pump() {
-    if (VIS.cur || VIS.state !== 'ready' || !VIS.queue.length) return;
-    VIS.cur = VIS.queue.shift();
-    VIS.worker.postMessage({ type: 'run', inputBuffer: VIS.cur.input.buffer }, [VIS.cur.input.buffer]);
+  function pickFolder() {
+    return new Promise((resolve) => {
+      const inp = h('input', { type: 'file', multiple: true, style: { display: 'none' } });
+      inp.webkitdirectory = true;
+      inp.addEventListener('change', () => { resolve([...inp.files]); inp.remove(); });
+      inp.addEventListener('cancel', () => { resolve([]); inp.remove(); });
+      document.body.appendChild(inp); inp.click();
+    });
   }
-  async function imageTensor(file) {
+  /** Interleaved RGB (short side at most 1024, which is ample for the 224 px input) and a thumbnail. */
+  async function imagePixels(file) {
     const bmp = await createImageBitmap(file);
-    const c = document.createElement('canvas'); c.width = c.height = 256;
-    const ctx = c.getContext('2d');
-    const s = Math.min(bmp.width, bmp.height);
-    ctx.drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, 256, 256);
-    const px = ctx.getImageData(0, 0, 256, 256).data, plane = 256 * 256, out = new Float32Array(3 * plane);
-    for (let i = 0; i < plane; i++) { out[i] = px[i * 4] / 255; out[plane + i] = px[i * 4 + 1] / 255; out[2 * plane + i] = px[i * 4 + 2] / 255; }
-    return { input: out, thumb: c.toDataURL('image/jpeg', 0.7) };
+    const scale = Math.min(1, 1024 / Math.min(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale)), hh = Math.max(1, Math.round(bmp.height * scale));
+    const c = document.createElement('canvas'); c.width = w; c.height = hh;
+    const ctx = c.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(bmp, 0, 0, w, hh);
+    const px = ctx.getImageData(0, 0, w, hh).data, rgb = new Uint8Array(w * hh * 3);
+    for (let i = 0, j = 0; i < px.length; i += 4) { rgb[j++] = px[i]; rgb[j++] = px[i + 1]; rgb[j++] = px[i + 2]; }
+    const t = document.createElement('canvas'); t.width = t.height = 256;
+    const sq = Math.min(bmp.width, bmp.height);
+    t.getContext('2d').drawImage(bmp, (bmp.width - sq) / 2, (bmp.height - sq) / 2, sq, sq, 0, 0, 256, 256);
+    return { rgb, w, h: hh, thumb: t.toDataURL('image/jpeg', 0.7) };
   }
-  async function embed(file, onProgress) {
+  async function embed(file) {
     await visionStart();
-    const { input, thumb } = await imageTensor(file);
-    const r = await new Promise((resolve, reject) => { VIS.queue.push({ input, resolve, reject, onProgress }); pump(); });
-    return Object.assign(r, { thumb });
+    const d = await imagePixels(file);
+    await frame();
+    const M = VIS.m, t0 = performance.now();
+    const z = M.encoder.encode(window.Orasis.preprocess(d.rgb, d.w, d.h, M.encoder.size));
+    const inferenceMs = performance.now() - t0;
+    const short = (l) => l.split(',')[0];
+    const labels = window.OrasisHead.top(M.inet, z, 3).map((x) => short(M.inetLabels[x.index]));
+    const scene = M.sceneLabels[window.OrasisHead.top(M.scenes, z, 1)[0].index];
+    // the text map projects the image into the word-bank space; the result must be unit length
+    const v = new Float32Array(window.OrasisHead.scores(M.textMap, z));
+    let n = 0; for (const x of v) n += x * x;
+    n = Math.sqrt(n) || 1; for (let i = 0; i < v.length; i++) v[i] /= n;
+    const words = window.Orasis.topK(v, M.bank, 3).map((x) => M.bankLabels[x.index]);
+    return { embedding: z, labels, scene, words, inferenceMs, thumb: d.thumb };
   }
   async function pickImage(file) {
     if (!file) { file = await App.openFileDialog('image/*'); if (!file) return; }
-    const m = bot(VIS.state === 'ready' ? TU('Looking at the image…', 'Εξετάζω την εικόνα…') : TU('Loading MobileCLIP-S0 (45 MB, runs locally)… the first time takes a little while.', 'Φορτώνω το MobileCLIP-S0 (45 MB, τρέχει τοπικά)… την πρώτη φορά θέλει λίγο χρόνο.'), { progress: 0 });
+    const m = bot(VIS.state === 'ready' ? TU('Looking at the image…', 'Εξετάζω την εικόνα…') : TU('Loading Orasis-2 (10 MB, runs locally)…', 'Φορτώνω το Orasis-2 (10 MB, τρέχει τοπικά)…'), { progress: 0 });
     try {
-      const r = await embed(file, (f) => update(m, { progress: f }));
-      const top = (r.top || []).slice(0, 5);
-      update(m, { progress: null, img: r.thumb, text: TU('I think this is: ', 'Νομίζω ότι είναι: ') + (top[0] ? top[0].label : '?') + '\n' + top.map((x) => `• ${x.label} — ${U.d2s(100 * x.score, 1)}%`).join('\n'),
-        src: `MobileCLIP-S0 · ${(r.inferenceMs / 1000).toFixed(1)} s · ${TU('zero-shot over ~1,250 labels', 'zero-shot σε ~1.250 ετικέτες')}`,
+      const r = await embed(file);
+      update(m, { progress: null, img: r.thumb, text: TU('Best guess: ', 'Καλύτερη εκτίμηση: ') + r.labels[0] + '\n' + TU('Other guesses: ', 'Άλλες εκτιμήσεις: ') + r.labels.slice(1).join(', ') + '\n' + TU('Related words: ', 'Σχετικές λέξεις: ') + r.words.join(', ') + '\n' + TU('Closest of 14 scene types: ', 'Πλησιέστερος από 14 τύπους σκηνής: ') + r.scene,
+        src: `Orasis-2 · ${Math.round(r.inferenceMs)} ms · ${TU('on your device · a small model, so treat these as rough guesses', 'στη συσκευή σου · μικρό μοντέλο, οπότε είναι χονδρικές εκτιμήσεις')}`,
         chips: [chip(TU('Images → dataset', 'Εικόνες → dataset'))] });
     } catch (e) { update(m, { progress: null, text: '⚠ ' + e.message }); }
   }
@@ -878,7 +898,7 @@
     });
   }
   async function imagesToDataset() {
-    bot(TU('Choose a folder with one sub-folder per class (e.g. cats/, dogs/), or several images whose names start with the class (cat_01.jpg). Each image becomes a row with 512 MobileCLIP embedding features — then try SMO, Logistic or k-means.', 'Διάλεξε έναν φάκελο με έναν υποφάκελο ανά κλάση (π.χ. cats/, dogs/) ή πολλές εικόνες με όνομα που ξεκινά από την κλάση (cat_01.jpg). Κάθε εικόνα γίνεται μια γραμμή με 512 χαρακτηριστικά embedding του MobileCLIP — μετά δοκίμασε SMO, Logistic ή k-means.'),
+    bot(TU('Choose a folder with one sub-folder per class (e.g. cats/, dogs/), or several images whose names start with the class (cat_01.jpg). Each image becomes a row with 1,280 Orasis-2 embedding features — then try SMO, Logistic or k-means.', 'Διάλεξε έναν φάκελο με έναν υποφάκελο ανά κλάση (π.χ. cats/, dogs/) ή πολλές εικόνες με όνομα που ξεκινά από την κλάση (cat_01.jpg). Κάθε εικόνα γίνεται μια γραμμή με 1.280 χαρακτηριστικά embedding του Orasis-2 — μετά δοκίμασε SMO, Logistic ή k-means.'),
       { chips: [chipFn(TU('📁 Choose folder', '📁 Επιλογή φακέλου'), () => buildImageData(true)), chipFn(TU('🖼 Choose images', '🖼 Επιλογή εικόνων'), () => buildImageData(false))] });
   }
   async function buildImageData(dir) {
@@ -895,16 +915,16 @@
       const rows = [], labels = [], zs = [];
       for (let i = 0; i < files.length; i++) {
         const r = await embed(files[i]);
-        rows.push(Array.from(r.embedding)); labels.push(labelOf(files[i])); zs.push(r.top && r.top[0] ? r.top[0].label : '?');
+        rows.push(Array.from(r.embedding)); labels.push(labelOf(files[i])); zs.push(r.labels[0]);
         update(m, { progress: (i + 1) / files.length, text: TU(`Embedding images… ${i + 1}/${files.length}`, `Embeddings εικόνων… ${i + 1}/${files.length}`) });
       }
       const dim = rows[0].length;
       const classVals = [...new Set(labels)], zsVals = [...new Set(zs)];
       const attrs = [];
       for (let k = 0; k < dim; k++) attrs.push({ name: 'emb' + (k + 1), type: 'numeric' });
-      attrs.push({ name: 'clip_label', type: 'nominal', values: zsVals }, { name: 'class', type: 'nominal', values: classVals });
+      attrs.push({ name: 'orasis_label', type: 'nominal', values: zsVals }, { name: 'class', type: 'nominal', values: classVals });
       const data = rows.map((e, i) => [...e, zsVals.indexOf(zs[i]), classVals.indexOf(labels[i])]);
-      App.loadNew(new W.Dataset('images-mobileclip', attrs, data, null, attrs.length - 1), 'images-mobileclip.arff');
+      App.loadNew(new W.Dataset('images-orasis', attrs, data, null, attrs.length - 1), 'images-orasis.arff');
       App.go('preprocess');
       update(m, { progress: null, text: TU(`Created a dataset: ${files.length} images × ${dim} embedding features, ${classVals.length} classes (${classVals.slice(0, 6).join(', ')}).`, `Δημιούργησα dataset: ${files.length} εικόνες × ${dim} χαρακτηριστικά embedding, ${classVals.length} κλάσεις (${classVals.slice(0, 6).join(', ')}).`),
         chips: [chip(TU('Run SMO', 'Τρέξε SMO')), chip(TU('Run Logistic', 'Τρέξε Logistic')), chip(TU('Cluster with k-means', 'Ομαδοποίηση με k-means'))] });
@@ -917,7 +937,7 @@
     const pill = (name, st, p) => h('span.as-pill.' + st, name + (st === 'loading' && p ? ' ' + Math.round(p * 100) + '%' : ''));
     App.clear(statusEl).append(
       pill('Needle 2', S.set.ai ? AI.state === 'off' ? 'idle' : AI.state : 'off', AI.progress),
-      pill('Whistle', VOICE.state === 'off' ? 'idle' : VOICE.state), pill('MobileCLIP', VIS.state === 'off' ? 'idle' : VIS.state, VIS.progress));
+      pill('Whistle', VOICE.state === 'off' ? 'idle' : VOICE.state), pill('Orasis', VIS.state === 'off' ? 'idle' : VIS.state, VIS.progress));
     if (S.view === 'settings') renderBody();
   }
   let bodyEl = null;
@@ -942,8 +962,8 @@
       row(TU('AI mode (Needle 2)', 'AI mode (Needle 2)'), TU('A 13.7 MB language model that runs locally and turns free-form commands into one app action — always shown for your confirmation. About 10–40 s per command, depending on your device.', 'Γλωσσικό μοντέλο 13,7 MB που τρέχει τοπικά και μετατρέπει ελεύθερες εντολές σε μία ενέργεια της εφαρμογής — πάντα με επιβεβαίωσή σου. Περίπου 10–40 s ανά εντολή, ανάλογα με τη συσκευή.') + (AI.state === 'error' ? ' ⚠ ' + AI.error : ''), aiCtl),
       row(TU('Wikipedia look-ups', 'Αναζητήσεις στη Wikipedia'), TU('For “what is …?” questions I do not know, send only the term to Wikipedia and show a short, credited summary.', 'Για ερωτήσεις «τι είναι …;» που δεν ξέρω, στέλνεται μόνο ο όρος στη Wikipedia και εμφανίζεται σύντομη περίληψη με αναφορά.'), sw(S.set.wiki, (v) => { S.set.wiki = v; saveSet(); })),
       row(TU('Voice language (Whistle)', 'Γλώσσα φωνής (Whistle)'), TU('Whistle (17 MB) supports these 7 languages — not Greek.', 'Το Whistle (17 MB) υποστηρίζει αυτές τις 7 γλώσσες — όχι ελληνικά.'), langSel),
-      h('div.as-set-d', { style: { marginTop: '10px' } }, TU('Image recognition uses MobileCLIP-S0 (Apple ML Research licence, research/academic use). Models load only when you first use them, and everything runs on your device. ', 'Η αναγνώριση εικόνων χρησιμοποιεί το MobileCLIP-S0 (άδεια Apple ML Research, για έρευνα/εκπαίδευση). Τα μοντέλα φορτώνονται μόνο όταν τα χρησιμοποιήσεις πρώτη φορά και όλα τρέχουν στη συσκευή σου. '),
-        isHttp ? '' : TU('You opened the app from file://, so the AI and voice models are loaded from a file you choose, and image recognition is unavailable.', 'Άνοιξες την εφαρμογή από file://, οπότε τα μοντέλα AI και φωνής φορτώνονται από αρχείο που επιλέγεις και η αναγνώριση εικόνων δεν είναι διαθέσιμη.')),
+      h('div.as-set-d', { style: { marginTop: '10px' } }, TU('Image recognition uses Zagreus Orasis-2 (10 MB). Models load only when you first use them, and everything runs on your device. ', 'Η αναγνώριση εικόνων χρησιμοποιεί το Zagreus Orasis-2 (10 MB). Τα μοντέλα φορτώνονται μόνο όταν τα χρησιμοποιήσεις πρώτη φορά και όλα τρέχουν στη συσκευή σου. '),
+        isHttp ? '' : TU('You opened the app from file://, so you choose the model file or folder the first time you use AI mode, voice or image recognition.', 'Άνοιξες την εφαρμογή από file://, οπότε διαλέγεις το αρχείο ή τον φάκελο του μοντέλου την πρώτη φορά που χρησιμοποιείς το AI mode, τη φωνή ή την αναγνώριση εικόνων.')),
       h('button.btn.sm', { style: { marginTop: '12px' }, on: { click: () => { S.view = 'chat'; renderBody(); } } }, TU('← Back to chat', '← Πίσω στη συζήτηση'))));
   }
   function build() {
@@ -952,7 +972,7 @@
     statusEl = h('div.as-status');
     inputEl = h('input.input', { maxlength: 300, placeholder: TU('Ask or give a command… e.g. “compare models”', 'Ρώτα ή δώσε εντολή… π.χ. «σύγκρινε μοντέλα»'), on: { keydown: (e) => { if (e.key === 'Enter') send(inputEl.value); } } });
     const mic = h('button.btn.ghost.icon.as-mic', { title: TU('Voice command (Whistle)', 'Φωνητική εντολή (Whistle)'), on: { click: () => voiceToggle(mic) } }, App.icon('mic'));
-    const img = h('button.btn.ghost.icon', { title: TU('Recognise an image (MobileCLIP)', 'Αναγνώριση εικόνας (MobileCLIP)'), on: { click: () => send(TU('recognise an image', 'αναγνώριση εικόνας')) } }, App.icon('image'));
+    const img = h('button.btn.ghost.icon', { title: TU('Recognise an image (Orasis-2)', 'Αναγνώριση εικόνας (Orasis-2)'), on: { click: () => send(TU('recognise an image', 'αναγνώριση εικόνας')) } }, App.icon('image'));
     const sendBtn = h('button.btn.primary.icon', { title: TU('Send', 'Αποστολή'), on: { click: () => send(inputEl.value) } }, App.icon('send'));
     bodyEl = h('div.as-body');
     panel = h('div.as-panel', { role: 'dialog', 'aria-label': TU('Weka assistant', 'Βοηθός Weka') },
